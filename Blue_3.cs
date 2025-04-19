@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,11 +30,9 @@ namespace Lab_8
 
         public override void Review()
         {
-            if (Input == null || Input.Length == 0)
-            {
-                _output = null;
+            if (string.IsNullOrEmpty(Input))
                 return;
-            }
+
 
             int[] counts = new int[54765];
             int total = 0;
@@ -50,17 +48,17 @@ namespace Lab_8
 
                 int start = i;
 
-                while (i < Input.Length && !punkt(Input[i]))  i++;
+                while (i < Input.Length && !punkt(Input[i])) i++;
 
                 if (start < i)
                 {
                     char ch = Input[start];
 
-                 
+
                     if (ch >= 'A' && ch <= 'Z') ch = (char)(ch + 32);
                     if (ch >= 'А' && ch <= 'Я') ch = (char)(ch + 32);
 
-                    
+
                     bool isLatin = (ch >= 'a' && ch <= 'z');
                     bool isCyrillic = (ch >= 'а' && ch <= 'я') || ch == 'ё';
 
@@ -89,7 +87,7 @@ namespace Lab_8
                 }
             }
 
-          
+
             for (int x = 0; x < _output.Length - 1; x++)
             {
                 for (int y = x + 1; y < _output.Length; y++)
