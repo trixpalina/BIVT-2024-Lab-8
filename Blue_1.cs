@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-//Разбить исходный текст на строки длиной не более 50 символов.Перенос на новую строку осуществлять на месте пробела
-//    (слова не переносить). Свойство Output должно возвращать массив строк.Метод ToString() должен возвращать массив 
-//        отформатированных строк построчно.
+
+
 namespace Lab_8
 {
     public class Blue_1 : Blue
@@ -16,90 +15,96 @@ namespace Lab_8
 
         public Blue_1(string input) : base(input)
         {
-            _output = new string[0];
+            _output = null;
+        }
+        private static void Add(ref string[] strings, string str)
+        {
+            if (strings == null || string.IsNullOrEmpty(str))
+                return;
+
+            string[] newStrings = new string[strings.Length + 1];
+            for (int i = 0; i < strings.Length; i++)
+            {
+                newStrings[i] = strings[i];
+            }
+
+            newStrings[strings.Length] = str;
+            strings = newStrings;
         }
 
         public override void Review()
         {
-            if (Input == null)
+            if (string.IsNullOrEmpty(Input))
             {
-               _output = null;
-               return;
+                _output = null;
+                return;
             }
 
-            string[] words = SplitWords(Input);
-            string line = "";
+            string[] words = Split(Input, ' ');
+            string[] res = new string[0];
+            int i = 0;
 
-            string[] result = new string[Input.Length]; 
-            int index = 0;
-
-            foreach (string word in words)
+            while (i < words.Length)
             {
-                    if (line.Length + word.Length + 1 <= 50)
-                    {
-                        if (line.Length > 0)
-                            line += " ";
-                        line += word;
-                    }
-                    else
-                    {
-                        result[index++] = line;
-                        line = word;
-                    }
+                string line = "";
+                int counter = words[i].Length;
+
+                line += words[i++] + " ";
+
+                while (i < words.Length && (counter + words[i].Length + 1) <= 50)
+                {
+                    line += words[i] + " ";
+                    counter += words[i].Length + 1;
+                    i++;
+                }
+
+                if (line.Length > 0)
+                    line = line.Substring(0, line.Length - 1); 
+
+                Add(ref res, line);
             }
 
-            if (line.Length > 0) result[index++] = line;
-
-                _output = new string[index];
-                for (int i = 0; i < index; i++)
-                    _output[i] = result[i];
+            _output = res;
         }
 
         public override string ToString()
         {
-            if (_output == null)  return " ";
+            if (_output == null || _output.Length == 0)
+                return string.Empty;
+            return string.Join(Environment.NewLine, _output);
+        }
 
-            string result = "";
-            for (int i = 0; i < _output.Length; i++)
+        private string[] Split(string input, char separator)
+        {
+            if (string.IsNullOrEmpty(input))
+                return new string[0];
+
+            int wordCount = 1;
+            for (int i = 0; i < input.Length; i++)
             {
-                result += _output[i];
-                if (i < _output.Length - 1)
-                    result += "\n"; 
+                if (input[i] == separator)
+                    wordCount++;
             }
+
+            string[] result = new string[wordCount];
+            int wordIndex = 0;
+            string currentWord = "";
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (input[i] == separator)
+                {
+                    result[wordIndex++] = currentWord;
+                    currentWord = "";
+                }
+                else
+                {
+                    currentWord += input[i];
+                }
+            }
+
+            result[wordIndex] = currentWord;
             return result;
         }
-
-        private string[] SplitWords(string text)
-            {
-                string current = "";
-                string[] temp = new string[text.Length];
-                int count = 0;
-
-                foreach (char c in text)
-                {
-                    if (c != ' ')
-                    {
-                        current += c;
-                    }
-                    else
-                    {
-                        if (current.Length > 0)
-                        {
-                            temp[count++] = current;
-                            current = "";
-                        }
-                    }
-                }
-
-                if (current.Length > 0)  temp[count++] = current;
-
-                string[] result = new string[count];
-                for (int i = 0; i < count; i++)
-                    result[i] = temp[i];
-
-                return result;
-            }
-        }
     }
-
-
+}
