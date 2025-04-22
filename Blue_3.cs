@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO.Pipes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Lab_8
 {
@@ -31,98 +33,104 @@ namespace Lab_8
         public override void Review()
         {
             if (string.IsNullOrEmpty(Input))
-                return;
-
-
-            int[] counts = new int[54765];
-            int total = 0;
-            int i = 0;
-
-            while (i < Input.Length)
             {
-                while (i < Input.Length && punkt(Input[i]))
+                _output = null;
+                return;
+            }
+
+
+            char[] pun = { ' ', '?', '!', '.', ':', ';', '\"', ',', '–', '(', ')', '[', ']', '{', '}', '/' };
+            string[] words = Input.Split(pun, StringSplitOptions.RemoveEmptyEntries);
+            int[] letter = new int[65674];
+            int total = 0;
+            foreach (string n in words)
+            {
+                if (n.Length != 0)
                 {
-                    i++;
-                }
-                if (i >= Input.Length) break;
+                    char count = char.ToLower(n[0]);
 
-                int start = i;
-
-                while (i < Input.Length && !punkt(Input[i])) i++;
-
-                if (start < i)
-                {
-                    char ch = Input[start];
-
-
-                    if (ch >= 'A' && ch <= 'Z') ch = (char)(ch + 32);
-                    if (ch >= 'А' && ch <= 'Я') ch = (char)(ch + 32);
-
-
-                    bool isLatin = (ch >= 'a' && ch <= 'z');
-                    bool isCyrillic = (ch >= 'а' && ch <= 'я') || ch == 'ё';
-
-                    if (isLatin || isCyrillic)
+                    if (char.IsLetter(count))
                     {
-                        counts[ch]++;
+                        letter[count]++;
                         total++;
                     }
                 }
+
             }
-
-            int unique = 0;
-            for (int j = 0; j < counts.Length; j++)
-                if (counts[j] > 0)
-                    unique++;
-
-            _output = new (char, double)[unique];
-            int index = 0;
-
-            for (int j = 0; j < counts.Length; j++)
+            int k = 0;
+            for (int i = 0; i < letter.Length; i++)
             {
-                if (counts[j] > 0)
+                if (letter[i] > 0)
                 {
-                    double percent = Math.Round(counts[j] * 100.0 / total, 4);
-                    _output[index++] = ((char)j, percent);
+                    k++;
                 }
             }
 
-
-            for (int x = 0; x < _output.Length - 1; x++)
+            _output = new (char, double)[k];
+            int t = 0;
+            for (int i = 0; i < letter.Length; i++)
             {
-                for (int y = x + 1; y < _output.Length; y++)
+               
+                double res;
+                if (letter[i] > 0)
                 {
-                    if (_output[y].Item2 > _output[x].Item2 ||
-                       (_output[y].Item2 == _output[x].Item2 && _output[y].Item1 < _output[x].Item1))
+                    double result = letter[i] * 100.0 / total;
+                    res = Math.Round(result, 4);
+
+                    _output[t++] = ((char)i, res); 
+                }
+            }
+
+            if (_output == null || _output.Length == 0) return;
+
+            for (int i = 0; i < _output.Length; i++)
+            {
+                for (int j = 0; j < _output.Length - i - 1; j++)
+                {
+                    if (_output[j].Item2 < _output[j + 1].Item2)
                     {
-                        var temp = _output[x];
-                        _output[x] = _output[y];
-                        _output[y] = temp;
+                        var temp = _output[j];
+                        _output[j] = _output[j + 1];
+                        _output[j + 1] = temp;
+                    }
+
+                    else if (_output[j].Item2 == _output[j + 1].Item2)
+                    {
+                        if (_output[j].Item1 > _output[j + 1].Item1)
+                        {
+                            var temp = _output[j];
+                            _output[j] = _output[j + 1];
+                            _output[j + 1] = temp;
+                        }
                     }
                 }
-            }
+                //for (int x = 0; x < _output.Length - 1; x++)
+                //{
+                //    for (int y = x + 1; y < _output.Length; y++)
+                //    {
+                //        if (_output[y].Item2 > _output[x].Item2 ||
+                //           (_output[y].Item2 == _output[x].Item2 && _output[y].Item1 < _output[x].Item1))
+                //        {
+                //            var temp = _output[x];
+                //            _output[x] = _output[y];
+                //            _output[y] = temp;
+                //        }
+                //    }
+                }
         }
-
         public override string ToString()
         {
-            if (_output == null || _output.Length == 0) return "";
-
+            if (_output == null || _output.Length == 0) return null;
             string res = "";
             for (int i = 0; i < _output.Length; i++)
             {
-                res += _output[i].Item1 + " - " + _output[i].Item2.ToString("F4");
-                if (i < _output.Length - 1)
-                    res += "\n";
-            }
+                res =res + ($"{_output[i].Item1} - {_output[i].Item2:f4}");
 
+                if (i != _output.Length - 1)
+                    res += Environment.NewLine;
+            }
             return res;
         }
-
-        private bool punkt(char c)
-        {
-            return c == ' ' || c == '.' || c == '!' || c == '?' || c == ',' || c == ':' || c == '"' ||
-                   c == ';' || c == '–' || c == '(' || c == ')' || c == '[' || c == ']' ||
-                   c == '{' || c == '}' || c == '/';
-        }
     }
+
 }
