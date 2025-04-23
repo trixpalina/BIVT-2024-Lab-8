@@ -6,129 +6,160 @@ using System.Threading.Tasks;
 
 namespace Lab_8
 {
-    public class Blue_2 : Blue
-    {
-        private string _part;
-        private string _output;
-
-        public string Output => _output;
-
-        public Blue_2(string text, string part) : base(text)
+   
+        public class Blue_2 : Blue
         {
-            _part = part;
-            _output = null;
-        }
+            private string _part;
+            private string _output;
 
-        public override void Review()
-        {
-            if (string.IsNullOrWhiteSpace(Input) || string.IsNullOrWhiteSpace(_part))
+            public string Output => _output;
+
+            public Blue_2(string text, string part) : base(text)
             {
+                _part = part;
                 _output = null;
-                return;
             }
 
-            string result = "";
-            string word = "";
-            for (int i = 0; i < Input.Length; i++)
+            public override void Review()
             {
-                char ch = Input[i];
-                if (ch != ' ')
+                if (string.IsNullOrWhiteSpace(Input) || string.IsNullOrWhiteSpace(_part))
                 {
-                    word += ch;
+                    _output = null;
+                    return;
                 }
 
-                if (ch == ' ' || i == Input.Length - 1)
+                string result = "";
+                string word = "";
+
+                for (int i = 0; i < Input.Length; i++)
                 {
-                    if (word.Length > 0)
+                    char ch = Input[i];
+                    if (ch != ' ')
                     {
-                        string clean = "";
-                        string punctuation = "";
-                        bool numberWithComma = false;
+                        word += ch;
+                    }
 
-                        for (int j = 0; j < word.Length; j++)
+                    if (ch == ' ' || i == Input.Length - 1)
+                    {
+                        if (word.Length > 0)
                         {
-                            char c = word[j];
+                            string clean = "";
+                            string punctuation = "";
+                            char wrapperStart = '\0', wrapperEnd = '\0';
 
-                            if (char.IsLetterOrDigit(c) || c == '-' || c == '\'')
+                            if ((word.StartsWith("(") && word.EndsWith(")")) ||
+                                (word.StartsWith("\"") && word.EndsWith("\"")) ||
+                                (word.StartsWith("«") && word.EndsWith("»")))
                             {
-                                clean += c;
+                                wrapperStart = word[0];
+                                wrapperEnd = word[word.Length - 1];
+                                word = word.Substring(1, word.Length - 2);
                             }
-                            else if (c == ',' && j > 0 && j < word.Length - 1 &&
-                                     char.IsDigit(word[j - 1]) && char.IsDigit(word[j + 1]))
+
+                            for (int j = 0; j < word.Length; j++)
                             {
-                                clean += c;
-                                numberWithComma = true;
+                                char c = word[j];
+
+                                if (char.IsLetterOrDigit(c) || c == '-' || c == '\'')
+                                {
+                                    clean += c;
+                                }
+                                else if (c == ',' && j > 0 && j < word.Length - 1 &&
+                                         char.IsDigit(word[j - 1]) && char.IsDigit(word[j + 1]))
+                                {
+                                    clean += c;
+                                }
+                                else
+                                {
+                                    punctuation += c;
+                                }
+                            }
+
+                            bool found = checkpart(clean, _part);
+
+                            if (!found)
+                            {
+                                if (result.Length > 0 && result[result.Length - 1] != ' ')
+                                    result += " ";
+
+                                if (wrapperStart != '\0')
+                                    result += wrapperStart;
+
+                                result += clean;
+
+                                if (wrapperEnd != '\0')
+                                    result += wrapperEnd;
+
+                                result += punctuation;
                             }
                             else
                             {
-                                punctuation += c;
+                                if (wrapperEnd == '\0' && punctuation.Length > 0)
+                                {
+                                    int cut = result.Length - 1;
+                                    while (cut >= 0 && result[cut] == ' ')
+                                        cut--;
+                                    result = result.Substring(0, cut + 1) + punctuation;
+                                }
                             }
-                        }
 
-                        bool found = checkpart(clean, _part);
-                        if (!found)
-                        {
-                            if (result.Length > 0 && result[result.Length - 1] != ' ')
-                                result += " ";
-                            result += clean + punctuation;
+                            word = "";
                         }
-                        else if (punctuation.Length > 0)
-                        {
-                            int cut = result.Length - 1;
-                            while (cut >= 0 && result[cut] == ' ')
-                                cut--;
-                            result = result.Substring(0, cut + 1) + punctuation;
-                        }
-
-                        word = "";
                     }
                 }
-            }
 
-            result = result.Trim();
-            _output = result.Length > 0 ? result : null;
-        } //public override void Review()
+                result = result.Trim();
 
-        private bool checkpart(string word, string part)
-        {
-            int wLen = word.Length;
-            int pLen = part.Length;
-            if (pLen > wLen) return false;
-
-            for (int i = 0; i <= wLen - pLen; i++)
-            {
-                bool match = true;
-                for (int j = 0; j < pLen; j++)
+                if (result.Length > 0)
                 {
-                    char a = word[i + j];
-                    char b = part[j];
-
-                  
-                    if (a >= 'A' && a <= 'Z') a = (char)(a + 32);
-                    if (b >= 'A' && b <= 'Z') b = (char)(b + 32);
-
-                    if (a >= 'А' && a <= 'Я') a = (char)(a + 32); 
-                    if (a == 'Ё') a = 'ё';
-
-                    if (b >= 'А' && b <= 'Я') b = (char)(b + 32);
-                    if (b == 'Ё') b = 'ё';
-
-                    if (a != b)
-                    {
-                        match = false;
-                        break;
-                    }
+                    _output = result;
                 }
-
-                if (match) return true;
+                else
+                {
+                    _output = null;
+                }
             }
 
-            return false;
-        }
+            private bool checkpart(string word, string part)
+            {
+                int wLen = word.Length;
+                int pLen = part.Length;
+                if (pLen > wLen) return false;
 
-        public override string ToString()
-        {
-            return _output;
+                for (int i = 0; i <= wLen - pLen; i++)
+                {
+                    bool match = true;
+                    for (int j = 0; j < pLen; j++)
+                    {
+                        char a = word[i + j];
+                        char b = part[j];
+
+                        if (a >= 'A' && a <= 'Z') a = (char)(a + 32);
+                        if (b >= 'A' && b <= 'Z') b = (char)(b + 32);
+
+                        if (a >= 'А' && a <= 'Я') a = (char)(a + 32);
+                        if (a == 'Ё') a = 'ё';
+
+                        if (b >= 'А' && b <= 'Я') b = (char)(b + 32);
+                        if (b == 'Ё') b = 'ё';
+
+                        if (a != b)
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
+
+                    if (match) return true;
+                }
+
+                return false;
+            }
+
+            public override string ToString()
+            {
+                return _output;
+            }
         }
     }
-}
+
