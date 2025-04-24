@@ -16,7 +16,7 @@ namespace Lab_8
         {
             get
             {
-                if (_output == null) return new (char, double)[0];
+                if (_output == null) return null;
 
                 (char, double)[] newarr = new (char, double)[_output.Length];
                 for (int i = 0; i < _output.Length; i++)
