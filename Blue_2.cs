@@ -12,134 +12,78 @@ namespace Lab_8
         private string _output;
 
         public string Output => _output;
-
-        public Blue_2(string text, string part) : base(text)
+        public Blue_2(string input, string part) : base(input)
         {
-            _part = part;
             _output = null;
+            _part = part;
         }
 
         public override void Review()
         {
-            if (string.IsNullOrWhiteSpace(Input) || string.IsNullOrWhiteSpace(_part))
+            if (string.IsNullOrEmpty(_part) || string.IsNullOrEmpty(Input))
             {
                 _output = null;
                 return;
             }
 
-            string result = "";
-            string word = "";
+            string[] words = Input.Split(' ');
+            string ans = "";
 
-            for (int i = 0; i < Input.Length; i++)
+            for (int i = 0; i < words.Length; i++)
             {
-                char ch = Input[i];
-                if (ch != ' ')
-                {
-                    word += ch;
-                }
+                string word = words[i];
 
-                if (ch == ' ' || i == Input.Length - 1)
+                if (!word.Contains(_part))
                 {
-                    if (word.Length > 0)
+                    if (ans.Length > 0)
                     {
-                        string originalWord = word;
-                        string clean = "";
-                        string punctuation = "";
-                        char wrapperStart = '\0', wrapperEnd = '\0';
-                        bool hasWrappers = false;
-
-                        if ((word.StartsWith("(") && word.EndsWith(")")) ||
-                            (word.StartsWith("\"") && word.EndsWith("\"")) ||
-                            (word.StartsWith("«") && word.EndsWith("»")))
-                        {
-                            wrapperStart = word[0];
-                            wrapperEnd = word[word.Length - 1];
-                            word = word.Substring(1, word.Length - 2);
-                            hasWrappers = true;
-                        }
-
-                        for (int j = 0; j < word.Length; j++)
-                        {
-                            char c = word[j];
-
-                            if (char.IsLetterOrDigit(c) || c == '-' || c == '\'')
-                            {
-                                clean += c;
-                            }
-                            else if (c == ',' && j > 0 && j < word.Length - 1 &&
-                                     char.IsDigit(word[j - 1]) && char.IsDigit(word[j + 1]))
-                            {
-                                clean += c;
-                            }
-                            else
-                            {
-                                punctuation += c;
-                            }
-                        }
-
-                        bool found = checkpart(clean, _part);
-
-                        if (!found)
-                        {
-                            if (!string.IsNullOrWhiteSpace(result))
-                                result += " ";
-
-                            if (wrapperStart != '\0')
-                                result += wrapperStart;
-
-                            result += clean;
-
-                            if (wrapperEnd != '\0')
-                                result += wrapperEnd;
-
-                            result += punctuation;
-                        }
-
-                        word = "";
+                        ans += " " + word;
+                    }
+                    else
+                    {
+                        ans = ans + word;
                     }
                 }
-            }
-
-            result = result.Trim();
-
-            _output = result.Length > 0 ? result : null;
-        }
-
-        private bool checkpart(string word, string part)
-        {
-            int wLen = word.Length;
-            int pLen = part.Length;
-            if (pLen > wLen) return false;
-
-            for (int i = 0; i <= wLen - pLen; i++)
-            {
-                bool match = true;
-                for (int j = 0; j < pLen; j++)
+                else
                 {
-                    char a = word[i + j];
-                    char b = part[j];
-
-                    a = char.ToLower(a);
-                    b = char.ToLower(b);
-
-                    if (a == 'ё') a = 'е';
-                    if (b == 'ё') b = 'е';
-
-                    if (a != b)
+                    if (word.Length > 0 && char.IsPunctuation(word[0]))
                     {
-                        match = false;
-                        break;
+                        if (ans.Length > 0)
+                        {
+                            ans += " " + word[0];
+                        }
+                        else
+                        {
+                            ans += word[0];
+                        }
                     }
+                    int len = word.Length;
+
+                    if (len >= 2)
+                    {
+                        char secondLast = word[len - 2];
+                        if (char.IsPunctuation(secondLast))
+                        {
+                            ans += secondLast;
+                        }
+                    }
+                    if (len >= 1)
+                    {
+                        char last = word[len - 1];
+                        if (char.IsPunctuation(last))
+                        {
+                            ans += last;
+                        }
+                    }
+
                 }
-
-                if (match) return true;
+                _output = ans.Trim();
             }
-
-            return false;
         }
 
         public override string ToString()
         {
+            if (string.IsNullOrEmpty(_output)) return null;
             return _output;
         }
     }
